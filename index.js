@@ -39,6 +39,13 @@ app.get("/login/:loginInfo",function(request,response){ // Login checking
     find(request.params.loginInfo).then(r => response.json(r))
 })
 
+app.post("/newUser", function(req,res){
+    console.log("New user being created and posted...");
+    console.log(req.body)
+    signUp(req.body).then(r => res.json(r))
+    
+});
+
 const port = process.env.PORT || 10000;
 
 app.listen(port, function () {
@@ -62,6 +69,31 @@ async function find(loginInfo){
         return false;
     }
     catch (e){
+        console.error(e);
+    }
+    finally{
+        await client.close();
+    }
+}
+
+async function signUp(loginInfo){
+    try{
+        await client.connect();
+        const usernameCollection = await client.db('fitness').collection('users');
+        const query = {username:loginInfo.username};
+        console.log(query)
+        const doc = await usernameCollection.find(query).toArray();
+        console.log(doc);
+        if(!doc.length)
+        {
+            console.log("empty, good!");
+            await usernameCollection.insertOne(loginInfo);
+            return true;
+        }
+        else
+            return false
+    }
+    catch(e){
         console.error(e);
     }
     finally{
