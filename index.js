@@ -39,12 +39,17 @@ app.get("/login/:loginInfo",function(request,response){ // Login checking
     find(request.params.loginInfo).then(r => response.json(r))
 })
 
-app.post("/newUser", function(req,res){
+app.post("/newUser", function(req,res){ // Sign Up
     console.log("New user being created and posted...");
     console.log(req.body)
     signUp(req.body).then(r => res.json(r))
     
 });
+app.post("/newEntry", function(req,res) { // Add Entry for the User
+    console.log("New entry...");
+    console.log(req.body);
+    newEntry(req.body).then(r => res.json(r));
+})
 
 const port = process.env.PORT || 10000;
 
@@ -53,6 +58,7 @@ app.listen(port, function () {
 });
 
 
+// Check if the user and pass are in the DB
 async function find(loginInfo){
     try{
         await client.connect();
@@ -76,6 +82,7 @@ async function find(loginInfo){
     }
 }
 
+// Sign up the new user
 async function signUp(loginInfo){
     try{
         await client.connect();
@@ -84,7 +91,7 @@ async function signUp(loginInfo){
         console.log(query)
         const doc = await usernameCollection.find(query).toArray();
         console.log(doc);
-        if(!doc.length)
+        if(!doc.length) // Check if the user exists already
         {
             console.log("empty, good!");
             await usernameCollection.insertOne(loginInfo);
@@ -97,6 +104,23 @@ async function signUp(loginInfo){
         console.error(e);
     }
     finally{
+        await client.close();
+    }
+}
+
+// New entry for the user
+async function newEntry(entry){
+    try {
+        await client.connect();
+        const user = await client.db('fitness').collection(entry.username);
+        delete entry.username;
+        console.log(entry);
+        await user.insertOne(entry)
+    }
+    catch(e){
+        console.error(e);
+    }
+    finally {
         await client.close();
     }
 }
