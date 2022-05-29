@@ -39,6 +39,13 @@ app.get("/login/:loginInfo",function(request,response){ // Login checking
     find(request.params.loginInfo).then(r => response.json(r))
 })
 
+app.get("/retrieveData/:dataQuery", function(req,res){
+    console.log(req.params.dataQuery)
+    dataRetrieve(req.params.dataQuery).then(r => res.json(r))
+})
+
+// Post
+
 app.post("/newUser", function(req,res){ // Sign Up
     console.log("New user being created and posted...");
     console.log(req.body)
@@ -122,5 +129,38 @@ async function newEntry(entry){
     }
     finally {
         await client.close();
+    }
+}
+
+// New data query
+async function dataRetrieve(query){
+    try {
+        await client.connect();
+        const dataObj = parse(query);
+        console.log(dataObj)
+        const user = client.db('fitness').collection(dataObj.username);
+        if(dataObj.option == 'date') {
+            console.log("retrieval of date data...")
+            const doc = await user.find({date:dataObj.date}).toArray();
+            console.log(doc)
+            return doc;
+        }
+        else if(dataObj.option == 'type'){
+            console.log("retrieval of type data...");
+            return user.find({workout_type:dataObj.type})
+        }
+        else if(dataObj.option == 'split'){
+            console.log('retrieval of split data...');
+            return user.find({workout_split:dataObj.split});
+        }
+        console.log('fail of dataRetrieve')
+        return {}
+
+    }
+    catch(e){
+        console.error(e);
+    }
+    finally{
+        await client.close()
     }
 }
