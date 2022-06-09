@@ -147,11 +147,16 @@ async function dataRetrieve(query){
         }
         else if(dataObj.option == 'type'){
             console.log("retrieval of type data...");
-            return user.find({workout_type:dataObj.type})
+            return await user.find({workout_type:dataObj.type}).toArray();
         }
         else if(dataObj.option == 'split'){
             console.log('retrieval of split data...');
-            return user.find({workout_split:dataObj.split});
+            return await user.find({workout_split:dataObj.split}).toArray();
+        }
+        else if(dataObj.option == 'progress'){ // Retrieves docs relating to a specific topic
+            console.log('retrieval for progress');
+            return await user.find({workout_type:dataObj.progress}).toArray();
+
         }
         console.log('fail of dataRetrieve')
         return {}
